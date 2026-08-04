@@ -1,7 +1,9 @@
+import { useState } from 'react'
 import { useI18n } from '../../i18n/I18nProvider'
 import { Ticked } from '../../components/Ticked'
 import { Footer } from '../../components/Footer'
 import { PricingLink } from '../../components/PricingLink'
+import { WaitlistModal, type WaitlistPlan } from './WaitlistModal'
 
 const WHY_KEYS = ['f1', 'f2', 'f3', 'f4', 'f5', 'f6'] as const
 const HOW1_KEYS = ['h1a', 'h1b2', 'h1c', 'h1d'] as const
@@ -12,6 +14,9 @@ const FAQ_KEYS = ['q1', 'q2', 'q3', 'q4', 'q5', 'q6'] as const
 export function Landing({ onRestart }: { onRestart: () => void }) {
   const { t } = useI18n()
   const s = t.studio
+  const [waitlistPlan, setWaitlistPlan] = useState<WaitlistPlan | null>(null)
+
+  const startWriting = () => window.scrollTo({ top: 0, behavior: 'smooth' })
 
   return (
     <div className="landing" data-screen-label="Landing">
@@ -100,7 +105,7 @@ export function Landing({ onRestart }: { onRestart: () => void }) {
               <div>{s.t1e}</div>
               <div style={{ color: 'var(--faint)' }}>{s.t1f}</div>
             </div>
-            <button type="button" className="price-cta outline">
+            <button type="button" className="price-cta outline" onClick={startWriting}>
               {s.t1cta}
             </button>
           </div>
@@ -124,7 +129,7 @@ export function Landing({ onRestart }: { onRestart: () => void }) {
               <div>{s.t2f}</div>
               <div>{s.t2g}</div>
             </div>
-            <button type="button" className="price-cta solid">
+            <button type="button" className="price-cta solid" onClick={() => setWaitlistPlan('pro')}>
               {s.t2cta}
             </button>
           </div>
@@ -146,7 +151,7 @@ export function Landing({ onRestart }: { onRestart: () => void }) {
               <div>{s.t3e}</div>
               <div>{s.t3f}</div>
             </div>
-            <button type="button" className="price-cta outline">
+            <button type="button" className="price-cta outline" onClick={() => setWaitlistPlan('classroom')}>
               {s.t3cta}
             </button>
           </div>
@@ -185,6 +190,8 @@ export function Landing({ onRestart }: { onRestart: () => void }) {
         </div>
         <Footer page="app" />
       </section>
+
+      {waitlistPlan && <WaitlistModal plan={waitlistPlan} onClose={() => setWaitlistPlan(null)} />}
     </div>
   )
 }

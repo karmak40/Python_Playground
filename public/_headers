@@ -1,0 +1,10 @@
+# Netlify and Cloudflare Pages both read this file (same format, same
+# convention: a plain-text rule file at the site root). Required for
+# SharedArrayBuffer, which the Python runtime worker uses for interrupting a
+# running script and for the live pausable debugger (see vite.config.ts's
+# matching dev/preview headers, and src/lib/python/client.ts's
+# liveDebugAvailable() — without these, that check fails and the app falls
+# back to the recording-driver debugger instead of breaking silently).
+/*
+  Cross-Origin-Opener-Policy: same-origin
+  Cross-Origin-Embedder-Policy: require-corp

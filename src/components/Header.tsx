@@ -3,7 +3,7 @@ import { useI18n } from '../i18n/I18nProvider'
 import { LangSwitch, ThemeSwitch } from './Switches'
 import { PricingLink } from './PricingLink'
 
-type Page = 'app' | 'debugger' | 'help'
+type Page = 'app' | 'debugger' | 'help' | 'privacy' | 'terms' | 'contact'
 
 /** Matches the source design: the current page's own nav item renders as a
  * plain underlined span, not a link back to itself — except the Playground

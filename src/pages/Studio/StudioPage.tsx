@@ -16,8 +16,21 @@ export function StudioPage() {
   const {
     state,
     run,
+    stop,
     fix,
+    upload,
+    installPackage,
     restart,
+    setCode,
+    selectFile,
+    newFile,
+    removePyFile,
+    removeDataFile,
+    toggleBreakpoint,
+    startDebug,
+    debugStepInto,
+    debugContinue,
+    debugStop,
     dismissWelcome,
     openShare,
     closeShare,
@@ -32,7 +45,7 @@ export function StudioPage() {
     const onKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
         e.preventDefault()
-        run()
+        void run()
       }
     }
     window.addEventListener('keydown', onKeyDown)
@@ -41,18 +54,53 @@ export function StudioPage() {
 
   const pickStart = (index: number) => {
     dismissWelcome()
-    if (index === 0) later(run, 500)
+    if (index === 0) later(() => void run(), 300)
+  }
+
+  const saveFigure = (url: string) => {
+    const link = document.createElement('a')
+    link.href = url
+    link.download = 'figure.png'
+    link.click()
+    showToast(t.studio.figSaved)
   }
 
   return (
     <div className="page">
-      <StudioHeader running={state.running} onShare={openShare} onRun={run} />
+      <StudioHeader
+        activeFile={state.activeFile}
+        running={state.running}
+        status={state.status}
+        debugStatus={state.debugStatus}
+        onShare={openShare}
+        onRun={() => void run()}
+        onStop={stop}
+        onDebug={() => void startDebug()}
+        onDebugStep={debugStepInto}
+        onDebugContinue={debugContinue}
+        onDebugStop={debugStop}
+      />
 
       <div className="studio-body">
-        <Sidebar onRecipePick={() => showToast(t.studio.recipeInserted)} />
+        <Sidebar
+          pyFiles={state.pyFiles}
+          activeFile={state.activeFile}
+          files={state.files}
+          packages={state.packages}
+          onSelectFile={selectFile}
+          onNewFile={newFile}
+          onRemovePyFile={removePyFile}
+          onRemoveDataFile={removeDataFile}
+          onUpload={upload}
+          onInstallPackage={installPackage}
+          onRecipePick={() => showToast(t.studio.recipeInserted)}
+        />
         <Editor
           state={state}
-          onSaveFigure={() => showToast(t.studio.figSaved)}
+          pythonVersion={state.pythonVersion}
+          onChangeCode={setCode}
+          onToggleBreakpoint={toggleBreakpoint}
+          onSaveFigure={saveFigure}
           onCopyFigureCode={() => showToast(t.studio.figCopied)}
         />
         <RightPanel state={state} onFix={fix} />

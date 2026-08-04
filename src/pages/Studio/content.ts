@@ -16,41 +16,19 @@ export const CODE_BAD = [
   '',
   'monthly.plot(kind="bar", color="#b0532f")',
   'plt.show()',
-]
+].join('\n')
 
 export const FIXED_LINE = 'monthly = df.groupby("Month")["Revenue"].sum()'
 
-export type Out = { kind: 'val' | 'block' | 'chip'; text: string }
-
-/** 1-based line number -> simulated stdout, once revealed by the run animation. */
-export const OUTS: Record<number, Out> = {
-  6: { kind: 'val', text: '(248, 4)' },
-  9: {
-    kind: 'block',
-    text: 'Month\nJan   128,400\nFeb   131,900\nMar   142,050\nApr   138,700\nMay   151,300',
-  },
-  12: { kind: 'val', text: 'avg growth: 4.8%' },
-  15: { kind: 'chip', text: '→ Figure 1' },
+/** 1-based line access/replacement over a plain multi-line code string. */
+export function lineAt(code: string, line: number): string {
+  return code.split('\n')[line - 1] ?? ''
 }
-
-export type Variable = { name: string; type: string; val: string }
-
-export const VARS: Variable[] = [
-  { name: 'df', type: 'DataFrame', val: '248 rows × 4 columns' },
-  { name: 'monthly', type: 'Series', val: '12 values · 1.72M total' },
-  { name: 'growth', type: 'float', val: '0.0483' },
-]
-
-export const BAR_VALUES = [
-  128400, 131900, 142050, 138700, 151300, 147800, 139200, 144600, 158900, 163400, 171200, 184700,
-]
-export const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-
-export const PACKAGES = [
-  { name: 'pandas', ver: '2.2.2' },
-  { name: 'matplotlib', ver: '3.8.4' },
-  { name: 'numpy', ver: '1.26.4' },
-]
+export function replaceLine(code: string, line: number, text: string): string {
+  const lines = code.split('\n')
+  lines[line - 1] = text
+  return lines.join('\n')
+}
 
 type Item = { title: string; note: string }
 

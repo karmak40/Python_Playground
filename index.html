@@ -8,6 +8,48 @@
       name="description"
       content="An online Python playground that puts results in the margin, beside the line that made them. Runs in your browser on Pyodide."
     />
+
+    <!-- Favicon. favicon.svg is the primary source for modern browsers;
+         the PNGs cover older browsers, home-screen bookmarking, and the
+         handful of contexts that request /favicon.ico directly regardless
+         of these tags. -->
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="icon" href="/favicon-32x32.png" type="image/png" sizes="32x32" />
+    <link rel="icon" href="/favicon-16x16.png" type="image/png" sizes="16x16" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" sizes="180x180" />
+    <link rel="icon" href="/favicon.ico" sizes="any" />
+
+    <!-- Matches the paper/ink theme tokens in src/styles/tokens.css, so the
+         browser chrome (mobile address bar, etc.) doesn't clash with the
+         page the instant it loads. -->
+    <meta name="theme-color" content="#f6f2ea" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#16130e" media="(prefers-color-scheme: dark)" />
+
+    <!-- Open Graph / Twitter Card. og:url below is an explicit placeholder —
+         no domain is registered yet (see the launch audit). Replace
+         example.com with the real one once it exists, and turn the image
+         paths below into absolute URLs at the same time: relative og:image
+         URLs work on most crawlers but aren't spec-correct, and there's no
+         real domain to resolve them against yet anyway. -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Margin" />
+    <meta property="og:title" content="Margin — Python, in the open" />
+    <meta
+      property="og:description"
+      content="An online Python playground that puts results in the margin, beside the line that made them. Runs in your browser on Pyodide."
+    />
+    <meta property="og:image" content="/og-image.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:url" content="https://example.com/" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Margin — Python, in the open" />
+    <meta
+      name="twitter:description"
+      content="An online Python playground that puts results in the margin, beside the line that made them. Runs in your browser on Pyodide."
+    />
+    <meta name="twitter:image" content="/og-image.png" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

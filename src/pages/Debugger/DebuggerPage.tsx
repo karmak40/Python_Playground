@@ -3,27 +3,23 @@ import { Header } from '../../components/Header'
 import { Footer } from '../../components/Footer'
 import { Ticked } from '../../components/Ticked'
 import { useI18n } from '../../i18n/I18nProvider'
-import { highlightPython, DEBUGGER_OPTS } from '../../lib/pyHighlight'
-import { CODE, TRACE } from './content'
-import { useDebuggerDemo } from './useDebuggerDemo'
+import { liveDebugAvailable } from '../../lib/python/client'
+import { LiveDemoCard } from './LiveDemoCard'
+import { RecordedDemoCard } from './RecordedDemoCard'
 import './Debugger.css'
 
 const CAP_KEYS = ['cap1', 'cap2', 'cap3', 'cap4'] as const
 const STEP_KEYS = ['s1', 's2', 's3'] as const
 const FAQ_KEYS = ['q1', 'q2', 'q3', 'q4'] as const
 
+// SharedArrayBuffer availability depends on this page's cross-origin
+// isolation headers, which don't change mid-session — safe to read once.
+// Mounting only the matching card avoids spinning up two Pyodide workers.
+const LIVE_AVAILABLE = liveDebugAvailable()
+
 export function DebuggerPage() {
   const { t } = useI18n()
   const d = t.debugger
-  const { step, breakpoints, back, stepForward, continueRun, stop } = useDebuggerDemo()
-  const current = TRACE[step]
-
-  const controls = [
-    { label: d.back, act: back },
-    { label: d.step, act: stepForward, primary: true },
-    { label: d.contin, act: continueRun },
-    { label: d.stop, act: stop },
-  ]
 
   return (
     <div className="page">
@@ -46,62 +42,7 @@ export function DebuggerPage() {
         </div>
       </section>
 
-      <section className="section">
-        <div className="dbg-demo-card">
-          <div className="dbg-demo-tab">
-            <span>fizz.py</span>
-            <span className="spacer" />
-            <span className="dbg-paused">
-              {d.pausedAt} {current.line}
-            </span>
-          </div>
-          <div className="dbg-demo-body">
-            <div className="dbg-code-pane">
-              {CODE.map((src, i) => {
-                const n = i + 1
-                const active = current.line === n
-                const hasBp = breakpoints.includes(n)
-                return (
-                  <div className={`dbg-line${active ? ' is-active' : ''}`} key={n}>
-                    <span className={`dbg-bp-dot${hasBp ? ' is-set' : ''}`} />
-                    <span className="dbg-line-num">{n}</span>
-                    <span className="dbg-line-src">{highlightPython(src, String(n), DEBUGGER_OPTS)}</span>
-                  </div>
-                )
-              })}
-            </div>
-            <div className="dbg-side">
-              <div className="dbg-controls">
-                {controls.map((c) => (
-                  <button
-                    type="button"
-                    className={`dbg-ctrl-btn${c.primary ? ' is-primary' : ''}`}
-                    key={c.label}
-                    onClick={c.act}
-                  >
-                    {c.label}
-                  </button>
-                ))}
-              </div>
-              <div className="dbg-scope">
-                <span className="dbg-side-label">{d.scope}</span>
-                {current.scope.map(([k, v]) => (
-                  <div className="dbg-scope-row" key={k}>
-                    <span className="dbg-scope-key">{k}</span>
-                    <span className="dbg-scope-val">{v}</span>
-                  </div>
-                ))}
-              </div>
-              <div className="dbg-stack">
-                <span className="dbg-side-label">{d.callstack}</span>
-                <span className="dbg-stack-frame">classify() · fizz.py:5</span>
-                <span className="dbg-stack-frame is-outer">&lt;module&gt; · fizz.py:9</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <p className="dbg-demo-note">{d.demoNote}</p>
-      </section>
+      <section className="section">{LIVE_AVAILABLE ? <LiveDemoCard /> : <RecordedDemoCard />}</section>
 
       <section className="section">
         <h2 className="h2" style={{ marginBottom: 30 }}>

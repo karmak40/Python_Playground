@@ -2,17 +2,36 @@ import { Link } from 'react-router-dom'
 import { useI18n } from '../../i18n/I18nProvider'
 import { LangSwitch, ThemeSwitch } from '../../components/Switches'
 import { PricingLink } from '../../components/PricingLink'
+import type { DebugStatus } from './useStudio'
 
 export function StudioHeader({
+  activeFile,
   running,
+  status,
+  debugStatus,
   onShare,
   onRun,
+  onStop,
+  onDebug,
+  onDebugStep,
+  onDebugContinue,
+  onDebugStop,
 }: {
+  activeFile: string
   running: boolean
+  status: string
+  debugStatus: DebugStatus
   onShare: () => void
   onRun: () => void
+  onStop: () => void
+  onDebug: () => void
+  onDebugStep: () => void
+  onDebugContinue: () => void
+  onDebugStop: () => void
 }) {
   const { t } = useI18n()
+  const debugging = debugStatus !== 'idle'
+  const busy = running || debugging
 
   return (
     <header className="site-header studio-header">
@@ -23,7 +42,7 @@ export function StudioHeader({
       </div>
 
       <div className="file-badge">
-        <span className="file-badge-name">sales_analysis.py</span>
+        <span className="file-badge-name">{activeFile}</span>
         <span className="saved-pill">
           <span className="saved-dot" />
           <span>{t.studio.savedLocal}</span>
@@ -49,9 +68,45 @@ export function StudioHeader({
         {t.studio.share}
       </button>
 
-      <button type="button" className="btn btn-primary btn-run" onClick={onRun}>
-        <span className={running ? 'run-spinner' : 'run-triangle'} />
-        <span>{running ? t.studio.running : t.studio.run}</span>
+      {debugging ? (
+        <>
+          <button type="button" className="btn btn-outline" onClick={onDebugStep} disabled={debugStatus !== 'paused'}>
+            {t.studio.debugStep}
+          </button>
+          <button
+            type="button"
+            className="btn btn-outline"
+            onClick={onDebugContinue}
+            disabled={debugStatus !== 'paused'}
+          >
+            {t.studio.debugContinue}
+          </button>
+          <button type="button" className="btn btn-outline" onClick={onDebugStop}>
+            {t.studio.debugStop}
+          </button>
+        </>
+      ) : (
+        <>
+          {running && (
+            <button type="button" className="btn btn-outline" onClick={onStop}>
+              {t.studio.stop}
+            </button>
+          )}
+          <button type="button" className="btn btn-outline" onClick={onDebug} disabled={busy}>
+            {t.studio.debug}
+          </button>
+        </>
+      )}
+
+      <button type="button" className="btn btn-primary btn-run" onClick={onRun} disabled={busy}>
+        <span className={running || debugStatus === 'starting' ? 'run-spinner' : 'run-triangle'} />
+        <span>
+          {running
+            ? status || t.studio.running
+            : debugging
+              ? (debugStatus === 'starting' && status) || t.studio.debugging
+              : t.studio.run}
+        </span>
         <span style={{ fontFamily: 'var(--mono)', fontSize: 10.5, opacity: 0.6 }}>⌘↵</span>
       </button>
     </header>

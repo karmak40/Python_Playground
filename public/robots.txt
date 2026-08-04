@@ -1,0 +1,5 @@
+# Margin is a single-page app; the Playground/Debugger/Help routes are
+# hash fragments (see App.tsx's HashRouter) that search engines don't crawl
+# as separate pages, so there's no sitemap to list here.
+User-agent: *
+Allow: /

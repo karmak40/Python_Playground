@@ -77,6 +77,20 @@
   color: var(--accent);
 }
 
+.dbg-mode-badge {
+  font-size: 10px;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  padding: 2px 7px;
+  border-radius: 999px;
+  border: 1px solid var(--rule2);
+}
+
+.dbg-mode-badge.is-live {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
 .dbg-demo-body {
   display: flex;
   min-height: 250px;
