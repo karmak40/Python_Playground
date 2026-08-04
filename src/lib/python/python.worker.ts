@@ -51,8 +51,10 @@ function emit(kind: string, payloadJson: string) {
   post({ ...data, t: kind, runId: currentRunId } as unknown as WorkerResponse)
 }
 
-/** Figures come across as raw bytes so a PNG is never base64-inflated. */
-function emitFigure(line: number | null, mime: string, bytes: unknown) {
+/** Figures come across as raw bytes so a PNG is never base64-inflated. `title`
+ * is whatever the user's own plt.title()/suptitle() actually set — empty if
+ * they didn't set one, never invented on their behalf. */
+function emitFigure(line: number | null, mime: string, bytes: unknown, title: string) {
   // Python `bytes` may arrive either already converted or as a proxy; either
   // way copy it into a buffer we own, since the wasm heap behind it is reused.
   const proxy = bytes as { toJs?: () => Uint8Array; destroy?: () => void }
@@ -63,7 +65,7 @@ function emitFigure(line: number | null, mime: string, bytes: unknown) {
   } else {
     copy = new Uint8Array(bytes as Uint8Array)
   }
-  post({ t: 'figure', runId: currentRunId, line, mime, bytes: copy }, [copy.buffer])
+  post({ t: 'figure', runId: currentRunId, line, mime, bytes: copy, title }, [copy.buffer])
 }
 
 /**
@@ -167,6 +169,12 @@ ctx.onmessage = async (event: MessageEvent<WorkerRequest>) => {
         // helper module's own `import numpy` should still trigger loading it.
         const combinedSource = [msg.code, ...Object.values(msg.otherFiles)].join('\n')
         await instance.loadPackagesFromImports(combinedSource)
+        // Marks the point where every CDN-dependent fetch is done and only the
+        // user's own code is left running — the client uses this to disarm its
+        // stall watchdog, since from here on an open-ended wait is legitimate
+        // (a slow script, not a stuck network request) and Stop is the only
+        // correct way out.
+        post({ t: 'progress', phase: 'executing', detail: '' })
         const raw = instance.runPython('run_user_code')(msg.code) as string
         const result = JSON.parse(raw) as { status: RunStatus; elapsedMs: number }
         post({
@@ -199,6 +207,7 @@ ctx.onmessage = async (event: MessageEvent<WorkerRequest>) => {
         // is the resume payload's length. The body starts right after both
         // Int32 slots (byte offset 8).
         liveCtl = { view: new Int32Array(msg.sab, 0, 2), body: new Uint8Array(msg.sab, 8, LIVE_CTL_BODY_BYTES) }
+        post({ t: 'progress', phase: 'executing', detail: '' })
         try {
           const raw = instance.runPython('start_live_debug')(msg.code, msg.breakpoints) as string
           const result = JSON.parse(raw) as { error: LiveDebugError }

@@ -228,6 +228,18 @@ export function CodeEditor({
         extensions: [
           ...staticExtensions,
           makeBreakpointGutter(onToggleBreakpointRef),
+          // F9 mirrors the standard IDE breakpoint shortcut (VS Code, Visual
+          // Studio) — the gutter dots are otherwise mouse-only, with no way
+          // to tab into individual gutter cells.
+          keymap.of([
+            {
+              key: 'F9',
+              run: (view) => {
+                onToggleBreakpointRef.current(view.state.doc.lineAt(view.state.selection.main.head).number)
+                return true
+              },
+            },
+          ]),
           EditorView.editable.of(!readOnly),
           EditorView.updateListener.of((update) => {
             if (update.docChanged) onChangeRef.current(update.state.doc.toString())

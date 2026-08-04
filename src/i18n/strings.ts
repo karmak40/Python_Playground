@@ -30,6 +30,9 @@ const en = {
     debugging: 'Debugging…',
     debugUnavailable: "Live debugging needs this page's headers — try Run instead.",
     debugFinished: 'Debug session finished',
+    stillWorking: 'Still working — taking longer than usual. Stop to cancel.',
+    stalledMessage:
+      "This is taking too long, likely a stalled connection to the Python runtime — we've stopped it. Please try again.",
     debugStep: 'Step',
     debugContinue: 'Continue',
     debugStop: 'Stop debugging',
@@ -56,15 +59,12 @@ const en = {
     stateEmpty: 'Nothing defined yet. Run the file and every variable shows up here, live.',
     variables: 'variables',
     notes: 'Notes',
-    notesBody:
-      'Q1 dipped because the Zürich store was closed for the refit. Worth excluding before the trend line.',
-    figCap: 'Revenue by month, 2025 (CHF)',
+    notesPlaceholder: 'Write what you notice — nothing here is generated for you.',
     figSave: 'Save PNG',
     figCode: 'Copy code',
     figSaved: 'Figure saved as PNG',
     figCopied: 'Plot code copied',
     recipeInserted: 'Recipe inserted',
-    linkCopied: 'Link copied',
     stoppedAfter: 'stopped after 0.31s',
     finishedMeta: '4 outputs · 0.42s',
     finishedToast: 'Finished in 0.42s',
@@ -72,12 +72,7 @@ const en = {
     wTitle: 'Start where you like.',
     wBody:
       'No account, no install. Python 3.12 loads in about a second and runs on your machine.',
-    sTitle: 'Share this playground',
-    sBody: 'A snapshot is uploaded — the original keeps living on your machine.',
-    copy: 'Copy',
     done: 'Done',
-    sUpsell:
-      'This link expires in 7 days. Pro links are private, permanent, and can be revoked.',
 
     whyH: 'Why Margin?',
     f1t: 'Results in the margin',
@@ -167,9 +162,13 @@ const en = {
     waitlistTitleClassroom: 'Tell us about your classroom',
     waitlistBodyClassroom:
       "Classroom is still being built. Leave your email and we'll get in touch to talk specifics — class size, timeline, whatever you need.",
+    waitlistTitleShare: 'Sharing isn’t live yet',
+    waitlistBodyShare:
+      "There's nowhere yet to host a snapshot of your playground — that needs the cloud backend we're building next. Leave your email and we'll let you know the moment real share links exist.",
     waitlistEmailPh: 'you@example.com',
     waitlistSubmitPro: 'Notify me',
     waitlistSubmitClassroom: 'Send',
+    waitlistSubmitShare: 'Notify me',
     waitlistThanksTitle: "Thanks — we'll be in touch",
     waitlistThanksBody: 'Your email app should have opened with a message ready to send. If nothing happened, just email us directly at',
 
@@ -317,6 +316,9 @@ const de: Strings = {
     debugging: 'Debuggt…',
     debugUnavailable: 'Live-Debugging braucht die Header dieser Seite – probier stattdessen Ausführen.',
     debugFinished: 'Debug-Sitzung beendet',
+    stillWorking: 'Dauert noch an – länger als üblich. Stopp zum Abbrechen.',
+    stalledMessage:
+      'Das dauert zu lange, vermutlich eine hängende Verbindung zur Python-Laufzeit – wir haben sie gestoppt. Bitte versuch es erneut.',
     debugStep: 'Schritt',
     debugContinue: 'Weiter',
     debugStop: 'Debuggen stoppen',
@@ -343,15 +345,12 @@ const de: Strings = {
     stateEmpty: 'Noch nichts definiert. Führe die Datei aus – jede Variable erscheint hier, live.',
     variables: 'Variablen',
     notes: 'Notizen',
-    notesBody:
-      'Q1 war schwach, weil der Zürcher Laden umgebaut wurde. Vor der Trendlinie besser ausschliessen.',
-    figCap: 'Umsatz pro Monat, 2025 (CHF)',
+    notesPlaceholder: 'Schreib auf, was dir auffällt – hier wird nichts für dich generiert.',
     figSave: 'PNG sichern',
     figCode: 'Code kopieren',
     figSaved: 'Abbildung als PNG gesichert',
     figCopied: 'Plot-Code kopiert',
     recipeInserted: 'Rezept eingefügt',
-    linkCopied: 'Link kopiert',
     stoppedAfter: 'gestoppt nach 0,31 s',
     finishedMeta: '4 Ausgaben · 0,42 s',
     finishedToast: 'Fertig in 0,42 s',
@@ -359,12 +358,7 @@ const de: Strings = {
     wTitle: 'Fang an, wo du willst.',
     wBody:
       'Kein Konto, keine Installation. Python 3.12 lädt in etwa einer Sekunde und läuft auf deinem Gerät.',
-    sTitle: 'Playground teilen',
-    sBody: 'Ein Schnappschuss wird hochgeladen – das Original bleibt auf deinem Gerät.',
-    copy: 'Kopieren',
     done: 'Fertig',
-    sUpsell:
-      'Dieser Link läuft in 7 Tagen ab. Pro-Links sind privat, dauerhaft und jederzeit widerrufbar.',
 
     whyH: 'Warum Margin?',
     f1t: 'Ergebnisse am Rand',
@@ -454,9 +448,13 @@ const de: Strings = {
     waitlistTitleClassroom: 'Erzähl uns von deiner Klasse',
     waitlistBodyClassroom:
       'Classroom wird noch gebaut. Hinterlass deine E-Mail, wir melden uns, um Details zu besprechen – Klassengrösse, Zeitrahmen, was auch immer du brauchst.',
+    waitlistTitleShare: 'Teilen ist noch nicht live',
+    waitlistBodyShare:
+      'Es gibt noch keinen Ort, um einen Schnappschuss deines Playgrounds zu hosten – dafür braucht es das Cloud-Backend, das wir als Nächstes bauen. Hinterlass deine E-Mail, wir melden uns, sobald echte Share-Links existieren.',
     waitlistEmailPh: 'du@beispiel.ch',
     waitlistSubmitPro: 'Benachrichtige mich',
     waitlistSubmitClassroom: 'Senden',
+    waitlistSubmitShare: 'Benachrichtige mich',
     waitlistThanksTitle: 'Danke – wir melden uns',
     waitlistThanksBody: 'Dein E-Mail-Programm sollte sich mit einer fertigen Nachricht geöffnet haben. Falls nicht, schreib uns direkt an',
 

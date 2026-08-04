@@ -30,18 +30,63 @@ export function replaceLine(code: string, line: number, text: string): string {
   return lines.join('\n')
 }
 
-type Item = { title: string; note: string }
+/** Reads just enough of a real uploaded file to list its actual header
+ * columns — a naive split (doesn't handle a quoted comma inside a header
+ * name), but real column names read from the real file, not a guess. */
+export async function sniffCsvColumns(file: File): Promise<string[]> {
+  const head = await file.slice(0, 8192).text()
+  const firstLine = head.split(/\r\n|\r|\n/)[0] ?? ''
+  return firstLine
+    .split(',')
+    .map((c) => c.trim().replace(/^"|"$/g, ''))
+    .filter(Boolean)
+}
 
-const RECIPES: Record<Lang, Item[]> = {
+/** The starter script for the welcome modal's "Drop in a CSV" option — real
+ * filename, real columns, nothing invented about what's in the file. */
+export function buildCsvStarter(filename: string, columns: string[]): string {
+  const safeName = filename.replace(/\\/g, '\\\\').replace(/"/g, '\\"')
+  const columnsLine = columns.length > 0 ? `# columns: ${columns.join(', ')}\n` : ''
+  return `import pandas as pd\n\n${columnsLine}df = pd.read_csv("${safeName}")\nprint(df.shape)\ndf.head()\n`
+}
+
+type Item = { title: string; note: string }
+type Recipe = Item & { code: string }
+
+const RECIPES: Record<Lang, Recipe[]> = {
   en: [
-    { title: 'Read a CSV', note: 'pandas · 2 lines' },
-    { title: 'Group and total', note: 'pandas · 1 line' },
-    { title: 'Bar chart', note: 'matplotlib · 2 lines' },
+    {
+      title: 'Read a CSV',
+      note: 'pandas · 2 lines',
+      code: 'df = pd.read_csv("sales.csv")\nprint(df.head())',
+    },
+    {
+      title: 'Group and total',
+      note: 'pandas · 1 line',
+      code: 'totals = df.groupby("month")["Revenue"].sum()',
+    },
+    {
+      title: 'Bar chart',
+      note: 'matplotlib · 2 lines',
+      code: 'totals.plot(kind="bar")\nplt.show()',
+    },
   ],
   de: [
-    { title: 'CSV einlesen', note: 'pandas · 2 Zeilen' },
-    { title: 'Gruppieren und summieren', note: 'pandas · 1 Zeile' },
-    { title: 'Balkendiagramm', note: 'matplotlib · 2 Zeilen' },
+    {
+      title: 'CSV einlesen',
+      note: 'pandas · 2 Zeilen',
+      code: 'df = pd.read_csv("sales.csv")\nprint(df.head())',
+    },
+    {
+      title: 'Gruppieren und summieren',
+      note: 'pandas · 1 Zeile',
+      code: 'totals = df.groupby("month")["Revenue"].sum()',
+    },
+    {
+      title: 'Balkendiagramm',
+      note: 'matplotlib · 2 Zeilen',
+      code: 'totals.plot(kind="bar")\nplt.show()',
+    },
   ],
 }
 
@@ -60,25 +105,9 @@ const STARTS: Record<Lang, Start[]> = {
   ],
 }
 
-const SHARE_OPTS: Record<Lang, Item[]> = {
-  en: [
-    { title: 'Anyone with the link can run it', note: 'They get their own copy of the runtime' },
-    { title: 'Include sales.csv', note: '18 KB uploaded with the snapshot' },
-    { title: 'Show my notes', note: 'The margin notes travel with the code' },
-  ],
-  de: [
-    { title: 'Jeder mit dem Link kann es ausführen', note: 'Alle bekommen ihre eigene Laufzeit' },
-    { title: 'sales.csv mitschicken', note: '18 KB werden mit dem Schnappschuss geladen' },
-    { title: 'Meine Notizen zeigen', note: 'Die Randnotizen reisen mit dem Code' },
-  ],
-}
-
 export function recipesFor(lang: Lang) {
   return RECIPES[lang]
 }
 export function startsFor(lang: Lang) {
   return STARTS[lang]
-}
-export function shareOptsFor(lang: Lang) {
-  return SHARE_OPTS[lang]
 }

@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useRef } from 'react'
 import { useI18n } from '../../i18n/I18nProvider'
 import { useScrollToStateTarget } from '../../components/PricingLink'
 import { StudioHeader } from './StudioHeader'
@@ -6,9 +6,10 @@ import { Sidebar } from './Sidebar'
 import { Editor } from './Editor'
 import { RightPanel } from './RightPanel'
 import { WelcomeModal } from './WelcomeModal'
-import { ShareModal } from './ShareModal'
+import { WaitlistModal } from './WaitlistModal'
 import { Landing } from './Landing'
 import { useStudio } from './useStudio'
+import { buildCsvStarter, sniffCsvColumns } from './content'
 import './Studio.css'
 
 export function StudioPage() {
@@ -22,6 +23,7 @@ export function StudioPage() {
     installPackage,
     restart,
     setCode,
+    setNotes,
     selectFile,
     newFile,
     removePyFile,
@@ -34,12 +36,12 @@ export function StudioPage() {
     dismissWelcome,
     openShare,
     closeShare,
-    toggleShareOpt,
     showToast,
     later,
   } = useStudio()
 
   useScrollToStateTarget()
+  const csvInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     const onKeyDown = (e: KeyboardEvent) => {
@@ -54,7 +56,18 @@ export function StudioPage() {
 
   const pickStart = (index: number) => {
     dismissWelcome()
-    if (index === 0) later(() => void run(), 300)
+    if (index === 0) {
+      later(() => void run(), 300)
+    } else if (index === 1) {
+      setCode('')
+    } else if (index === 2) {
+      csvInputRef.current?.click()
+    }
+  }
+
+  const pickWelcomeCsv = async (file: File) => {
+    const [columns] = await Promise.all([sniffCsvColumns(file), upload(file)])
+    setCode(buildCsvStarter(file.name, columns))
   }
 
   const saveFigure = (url: string) => {
@@ -65,12 +78,24 @@ export function StudioPage() {
     showToast(t.studio.figSaved)
   }
 
+  const insertRecipe = (code: string) => {
+    const current = state.pyFiles[state.activeFile] ?? ''
+    setCode(current.trim().length > 0 ? `${current}\n\n${code}\n` : `${code}\n`)
+    showToast(t.studio.recipeInserted)
+  }
+
+  const copyFigureCode = () => {
+    const code = state.pyFiles[state.activeFile] ?? ''
+    navigator.clipboard.writeText(code).then(() => showToast(t.studio.figCopied)).catch(() => {})
+  }
+
   return (
     <div className="page">
       <StudioHeader
         activeFile={state.activeFile}
         running={state.running}
         status={state.status}
+        slow={state.slow}
         debugStatus={state.debugStatus}
         onShare={openShare}
         onRun={() => void run()}
@@ -93,7 +118,7 @@ export function StudioPage() {
           onRemoveDataFile={removeDataFile}
           onUpload={upload}
           onInstallPackage={installPackage}
-          onRecipePick={() => showToast(t.studio.recipeInserted)}
+          onRecipePick={insertRecipe}
         />
         <Editor
           state={state}
@@ -101,9 +126,9 @@ export function StudioPage() {
           onChangeCode={setCode}
           onToggleBreakpoint={toggleBreakpoint}
           onSaveFigure={saveFigure}
-          onCopyFigureCode={() => showToast(t.studio.figCopied)}
+          onCopyFigureCode={copyFigureCode}
         />
-        <RightPanel state={state} onFix={fix} />
+        <RightPanel state={state} onFix={fix} onChangeNotes={setNotes} />
       </div>
 
       <Landing onRestart={restart} />
@@ -115,16 +140,21 @@ export function StudioPage() {
         </div>
       )}
 
+      <input
+        ref={csvInputRef}
+        type="file"
+        accept=".csv,text/csv"
+        hidden
+        onChange={(e) => {
+          const file = e.target.files?.[0]
+          e.target.value = ''
+          if (file) void pickWelcomeCsv(file)
+        }}
+      />
+
       {state.welcome && <WelcomeModal onPick={pickStart} />}
 
-      {state.share && (
-        <ShareModal
-          shareOn={state.shareOn}
-          onToggle={toggleShareOpt}
-          onCopy={() => showToast(t.studio.linkCopied)}
-          onClose={closeShare}
-        />
-      )}
+      {state.share && <WaitlistModal plan="share" onClose={closeShare} />}
     </div>
   )
 }

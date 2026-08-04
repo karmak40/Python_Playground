@@ -32,7 +32,7 @@ export function Sidebar({
   onRemoveDataFile: (name: string) => void
   onUpload: (file: File) => void
   onInstallPackage: (name: string) => Promise<{ ok: boolean; message: string }>
-  onRecipePick: () => void
+  onRecipePick: (code: string) => void
 }) {
   const { t, lang } = useI18n()
   const recipes = recipesFor(lang)
@@ -226,7 +226,7 @@ export function Sidebar({
       <div className="aside-group">
         <div className="aside-label">{t.studio.recipes}</div>
         {recipes.map((r) => (
-          <button type="button" className="recipe-btn" key={r.title} onClick={onRecipePick}>
+          <button type="button" className="recipe-btn" key={r.title} onClick={() => onRecipePick(r.code)}>
             <span className="recipe-title">{r.title}</span>
             <span className="recipe-note">{r.note}</span>
           </button>

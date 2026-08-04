@@ -4,6 +4,7 @@ import {
   liveDebugAvailable,
   PythonClient,
   type LivePause,
+  type ProgressEvent,
   type PyFile,
   type PyVariable,
   type RunEvent,
@@ -16,7 +17,7 @@ export type MarginKind = 'val' | 'block' | 'chip' | 'error' | 'html'
 
 export type MarginEntry = { kind: MarginKind; text: string }
 
-export type StudioFigure = { url: string; line: number | null }
+export type StudioFigure = { url: string; line: number | null; title: string }
 
 export type StudioError = {
   etype: string
@@ -36,7 +37,9 @@ export type StudioState = {
   activeFile: string
   welcome: boolean
   share: boolean
-  shareOn: boolean[]
+  /** The user's own written notes on the project — not generated from
+   * anything, just a real place to jot observations down. */
+  notes: string
   running: boolean
   breakpoints: number[]
   debugStatus: DebugStatus
@@ -55,6 +58,10 @@ export type StudioState = {
   toast: string
   meta: string
   status: string
+  /** True once a boot/package-load request has been pending unusually long —
+   * a real stalled-CDN-request signal, not a fake progress indicator. Cleared
+   * the moment the worker reports it's past the network-dependent phase. */
+  slow: boolean
 }
 
 function initialState(): StudioState {
@@ -66,7 +73,7 @@ function initialState(): StudioState {
     // they open the Playground.
     welcome: localStorage.getItem(WELCOME_SEEN_KEY) !== '1',
     share: false,
-    shareOn: [true, true, false],
+    notes: '',
     running: false,
     breakpoints: [],
     debugStatus: 'idle',
@@ -85,8 +92,22 @@ function initialState(): StudioState {
     toast: '',
     meta: '',
     status: '',
+    slow: false,
   }
 }
+
+// Booting Pyodide and loading package wheels both depend on a CDN request
+// that can stall (hang open) instead of failing outright — no error ever
+// arrives, so without this the status text would just sit there forever.
+// WARN is a soft nudge; KILL hard-resets the worker so the user gets a real
+// error and a working Run button back rather than a silently dead session.
+// Both are generous on purpose: a cold Pyodide boot plus wheel downloads can
+// legitimately take a while on a slow connection. Neither ever fires once
+// the worker reports the 'executing' phase — from that point on it's the
+// user's own code running, which can legitimately take any amount of time,
+// and Stop is the only correct way to interrupt it.
+const STALL_WARN_MS = 12_000
+const STALL_KILL_MS = 45_000
 
 /** Clears everything a *previous* run left behind — used whenever the active
  * file changes, since margin output/errors/figures only mean something next
@@ -127,6 +148,29 @@ export function useStudio() {
     timers.current.push(setTimeout(fn, ms))
   }, [])
 
+  // Watches the boot/package-loading phase of whichever run is currently in
+  // flight. `onKill` is swapped in by run()/startDebug() so this same pair of
+  // timers can hard-reset either one; onProgress disarms it the moment the
+  // worker reports real execution has begun.
+  const stallWarn = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const stallKill = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const disarmStall = useCallback(() => {
+    if (stallWarn.current) clearTimeout(stallWarn.current)
+    if (stallKill.current) clearTimeout(stallKill.current)
+    stallWarn.current = null
+    stallKill.current = null
+  }, [])
+
+  const armStall = useCallback(
+    (onKill: () => void) => {
+      disarmStall()
+      stallWarn.current = setTimeout(() => setState((s) => ({ ...s, slow: true })), STALL_WARN_MS)
+      stallKill.current = setTimeout(onKill, STALL_KILL_MS)
+    },
+    [disarmStall],
+  )
+
   const showToast = useCallback(
     (msg: string) => {
       setState((s) => ({ ...s, toast: msg }))
@@ -165,7 +209,11 @@ export function useStudio() {
                   kind: 'chip',
                   text: `→ Figure ${s.figures.length + 1}`,
                 })
-          return { ...s, outputs: withChip, figures: [...s.figures, { url, line: event.line }] }
+          return {
+            ...s,
+            outputs: withChip,
+            figures: [...s.figures, { url, line: event.line, title: event.title }],
+          }
         }
         case 'vars':
           return { ...s, vars: event.vars }
@@ -194,9 +242,13 @@ export function useStudio() {
     })
   }, [])
 
-  const onProgress = useCallback((event: { detail: string }) => {
-    setState((s) => ({ ...s, status: event.detail }))
-  }, [])
+  const onProgress = useCallback(
+    (event: ProgressEvent) => {
+      if (event.phase === 'executing') disarmStall()
+      setState((s) => ({ ...s, status: event.detail, slow: event.phase === 'executing' ? false : s.slow }))
+    },
+    [disarmStall],
+  )
 
   const onPause = useCallback((pause: LivePause) => {
     setState((s) => ({
@@ -219,9 +271,10 @@ export function useStudio() {
     return () => {
       timers.current.forEach(clearTimeout)
       figureUrls.current.forEach(URL.revokeObjectURL)
+      disarmStall()
       client.terminate()
     }
-  }, [client])
+  }, [client, disarmStall])
 
   const releaseFigures = useCallback(() => {
     figureUrls.current.forEach(URL.revokeObjectURL)
@@ -235,18 +288,25 @@ export function useStudio() {
     setState((s) => ({
       ...clearRunResults(s),
       running: true,
+      slow: false,
     }))
     // Every other project file gets written to the real filesystem so the
     // active file's own `import`s resolve; only the active file itself runs
     // through the margin-instrumented path (line-attributed output, the real
     // traceback formatting, bare-expression display).
     const otherFiles = Object.fromEntries(Object.entries(pyFiles).filter(([name]) => name !== activeFile))
+    let timedOut = false
+    armStall(() => {
+      timedOut = true
+      client.terminate()
+    })
     try {
       const result = await client.run(pyFiles[activeFile] ?? '', otherFiles)
       setState((s) => ({
         ...s,
         running: false,
         status: '',
+        slow: false,
         packages: result.packages,
         pythonVersion: result.python,
         meta: result.status === 'interrupted' ? t.studio.stoppedAfter : `${result.elapsedMs} ms`,
@@ -258,16 +318,19 @@ export function useStudio() {
         ...s,
         running: false,
         status: '',
+        slow: false,
         error: {
           etype: 'RuntimeError',
-          message: error instanceof Error ? error.message : String(error),
+          message: timedOut ? t.studio.stalledMessage : error instanceof Error ? error.message : String(error),
           line: null,
           traceback: '',
           columns: [],
         },
       }))
+    } finally {
+      disarmStall()
     }
-  }, [client, releaseFigures, refreshFiles, showToast, t])
+  }, [armStall, client, disarmStall, releaseFigures, refreshFiles, showToast, t])
 
   /** Applies the suggested column-name fix and immediately re-runs. */
   const fix = useCallback(() => {
@@ -282,9 +345,10 @@ export function useStudio() {
   }, [later, run])
 
   const stop = useCallback(() => {
+    disarmStall()
     client.terminate()
-    setState((s) => ({ ...s, running: false, status: '', meta: t.studio.stoppedAfter }))
-  }, [client, t])
+    setState((s) => ({ ...s, running: false, status: '', slow: false, meta: t.studio.stoppedAfter }))
+  }, [client, disarmStall, t])
 
   const toggleBreakpoint = useCallback((line: number) => {
     setState((s) => ({
@@ -306,13 +370,19 @@ export function useStudio() {
       return
     }
     releaseFigures()
-    setState((s) => ({ ...clearRunResults(s), debugStatus: 'starting' }))
+    setState((s) => ({ ...clearRunResults(s), debugStatus: 'starting', slow: false }))
     const otherFiles = Object.fromEntries(Object.entries(pyFiles).filter(([name]) => name !== activeFile))
+    let timedOut = false
+    armStall(() => {
+      timedOut = true
+      client.terminate()
+    })
     try {
       const result = await client.startLiveDebug(pyFiles[activeFile] ?? '', breakpoints, otherFiles)
       setState((s) => ({
         ...s,
         debugStatus: 'idle',
+        slow: false,
         activeLine: 0,
         debugScope: [],
         debugStack: [],
@@ -326,16 +396,19 @@ export function useStudio() {
       setState((s) => ({
         ...s,
         debugStatus: 'idle',
+        slow: false,
         error: {
           etype: 'RuntimeError',
-          message: error instanceof Error ? error.message : String(error),
+          message: timedOut ? t.studio.stalledMessage : error instanceof Error ? error.message : String(error),
           line: null,
           traceback: '',
           columns: [],
         },
       }))
+    } finally {
+      disarmStall()
     }
-  }, [client, releaseFigures, refreshFiles, showToast, t])
+  }, [armStall, client, disarmStall, releaseFigures, refreshFiles, showToast, t])
 
   const debugStepInto = useCallback(() => {
     if (stateRef.current.debugStatus === 'paused') client.resumeLiveDebug({ cmd: 'step' })
@@ -349,18 +422,37 @@ export function useStudio() {
     if (stateRef.current.debugStatus === 'paused') {
       client.resumeLiveDebug({ cmd: 'stop' })
     } else {
+      disarmStall()
       client.terminate()
-      setState((s) => ({ ...s, debugStatus: 'idle', running: false }))
+      setState((s) => ({ ...s, debugStatus: 'idle', running: false, slow: false }))
     }
-  }, [client])
+  }, [client, disarmStall])
 
   const installPackage = useCallback(
     async (name: string) => {
-      const result = await client.installPackage(name)
-      if (result.ok) setState((s) => ({ ...s, packages: result.packages }))
-      return { ok: result.ok, message: result.message }
+      // micropip's own fetch from PyPI is just as CDN-dependent as the boot/
+      // package-load phase above, and just as capable of stalling instead of
+      // failing — the same hard-reset treatment applies, minus the "slow"
+      // warning since Sidebar already shows a persistent "Installing…" state.
+      let timedOut = false
+      const killTimer = setTimeout(() => {
+        timedOut = true
+        client.terminate()
+      }, STALL_KILL_MS)
+      try {
+        const result = await client.installPackage(name)
+        if (result.ok) setState((s) => ({ ...s, packages: result.packages }))
+        return { ok: result.ok, message: result.message }
+      } catch (error) {
+        return {
+          ok: false,
+          message: timedOut ? t.studio.stalledMessage : error instanceof Error ? error.message : String(error),
+        }
+      } finally {
+        clearTimeout(killTimer)
+      }
     },
-    [client],
+    [client, t],
   )
 
   const upload = useCallback(
@@ -384,6 +476,7 @@ export function useStudio() {
       pyFiles: { [ENTRY_FILE]: CODE_BAD },
       activeFile: ENTRY_FILE,
       welcome: true,
+      notes: '',
     }))
   }, [releaseFigures])
 
@@ -391,6 +484,8 @@ export function useStudio() {
     (code: string) => setState((s) => ({ ...s, pyFiles: { ...s.pyFiles, [s.activeFile]: code } })),
     [],
   )
+
+  const setNotes = useCallback((notes: string) => setState((s) => ({ ...s, notes })), [])
 
   const selectFile = useCallback((name: string) => {
     setState((s) => (s.pyFiles[name] === undefined || s.activeFile === name ? s : clearRunResults({ ...s, activeFile: name })))
@@ -450,15 +545,6 @@ export function useStudio() {
   }, [])
   const openShare = useCallback(() => setState((s) => ({ ...s, share: true })), [])
   const closeShare = useCallback(() => setState((s) => ({ ...s, share: false })), [])
-  const toggleShareOpt = useCallback(
-    (i: number) =>
-      setState((s) => {
-        const shareOn = s.shareOn.slice()
-        shareOn[i] = !shareOn[i]
-        return { ...s, shareOn }
-      }),
-    [],
-  )
 
   return {
     state,
@@ -470,6 +556,7 @@ export function useStudio() {
     installPackage,
     restart,
     setCode,
+    setNotes,
     selectFile,
     newFile,
     removePyFile,
@@ -482,7 +569,6 @@ export function useStudio() {
     dismissWelcome,
     openShare,
     closeShare,
-    toggleShareOpt,
     showToast,
     later,
   }

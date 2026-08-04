@@ -13,7 +13,15 @@ function caseFix(state: StudioState): { wanted: string; actual: string } | null 
   return match ? { wanted, actual: match } : null
 }
 
-export function RightPanel({ state, onFix }: { state: StudioState; onFix: () => void }) {
+export function RightPanel({
+  state,
+  onFix,
+  onChangeNotes,
+}: {
+  state: StudioState
+  onFix: () => void
+  onChangeNotes: (notes: string) => void
+}) {
   const { t } = useI18n()
   const [showTraceback, setShowTraceback] = useState(false)
   const error = state.error
@@ -123,7 +131,12 @@ export function RightPanel({ state, onFix }: { state: StudioState; onFix: () => 
 
       <div className="panel-block" style={{ borderBottom: 0 }}>
         <div className="notes-title">{t.studio.notes}</div>
-        <p className="notes-body">{t.studio.notesBody}</p>
+        <textarea
+          className="notes-input"
+          value={state.notes}
+          onChange={(e) => onChangeNotes(e.target.value)}
+          placeholder={t.studio.notesPlaceholder}
+        />
       </div>
     </aside>
   )

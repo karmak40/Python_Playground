@@ -39,7 +39,7 @@ export type RunResult = {
   python: string
 }
 
-export type ProgressEvent = { phase: 'runtime' | 'packages'; detail: string }
+export type ProgressEvent = { phase: 'runtime' | 'packages' | 'executing'; detail: string }
 
 /** Anything a caller can subscribe to that isn't tied to a single request. */
 type Listeners = {

@@ -183,11 +183,25 @@ def _install_matplotlib_hook(source=""):
     if getattr(plt, "_margin_patched", False):
         return
 
+    def figure_title(fig):
+        """Whatever title the user's own code actually set — a figure-level
+        suptitle first, otherwise the first axes with a real title. Empty if
+        they didn't set one; we don't invent a caption for them.
+        """
+        suptitle = fig.get_suptitle()
+        if suptitle:
+            return suptitle
+        for ax in fig.axes:
+            title = ax.get_title()
+            if title:
+                return title
+        return ""
+
     def emit_figure(fig, line):
         buf = io.BytesIO()
         fig.savefig(buf, format="png", dpi=144, bbox_inches="tight",
                     facecolor=fig.get_facecolor())
-        _emit_figure(line, "image/png", buf.getvalue())
+        _emit_figure(line, "image/png", buf.getvalue(), figure_title(fig))
 
     def show(*_args, **_kwargs):
         line = _user_line()

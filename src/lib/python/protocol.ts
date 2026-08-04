@@ -56,7 +56,7 @@ export type PyVariable = { name: string; type: string; val: string }
 export type RunEvent =
   | { t: 'out'; runId: number; stream: 'stdout' | 'stderr'; line: number | null; text: string }
   | { t: 'value'; runId: number; line: number; repr: string; html: string | null }
-  | { t: 'figure'; runId: number; line: number | null; mime: string; bytes: Uint8Array }
+  | { t: 'figure'; runId: number; line: number | null; mime: string; bytes: Uint8Array; title: string }
   | { t: 'vars'; runId: number; vars: PyVariable[] }
   | {
       t: 'error'
@@ -73,7 +73,7 @@ export type BootInfo = { python: string; pyodide: string; packages: string[] }
 
 export type WorkerResponse =
   | RunEvent
-  | { t: 'progress'; phase: 'runtime' | 'packages'; detail: string }
+  | { t: 'progress'; phase: 'runtime' | 'packages' | 'executing'; detail: string }
   | { t: 'booted'; id: number; info: BootInfo }
   | {
       t: 'done'

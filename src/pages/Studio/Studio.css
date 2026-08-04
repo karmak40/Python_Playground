@@ -678,11 +678,27 @@
   margin-bottom: 11px;
 }
 
-.notes-body {
-  margin: 0;
+.notes-input {
+  width: 100%;
+  min-height: 96px;
+  resize: vertical;
+  border: 1px solid var(--rule2);
+  border-radius: 6px;
+  background: var(--paper);
+  padding: 10px 12px;
+  font-family: var(--sans);
   font-size: 12.5px;
   line-height: 1.6;
-  color: var(--muted);
+  color: var(--ink);
+}
+
+.notes-input::placeholder {
+  color: var(--faint);
+}
+
+.notes-input:focus {
+  outline: none;
+  border-color: var(--accent);
 }
 
 /* ---- Landing extras (Studio-specific) ---- */
@@ -851,10 +867,9 @@
   color: var(--faint);
 }
 
-/* ---- Welcome / Share modal specifics ---- */
+/* ---- Welcome modal specifics ---- */
 
-.start-list,
-.share-opts {
+.start-list {
   display: flex;
   flex-direction: column;
   gap: 1px;
@@ -901,108 +916,6 @@
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--accent);
-}
-
-.share-link-row {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 18px;
-}
-
-.share-link {
-  flex: 1;
-  height: 36px;
-  border: 1px solid var(--rule2);
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  padding: 0 12px;
-  font-family: var(--mono);
-  font-size: 12px;
-  color: var(--muted);
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.share-copy-btn {
-  height: 36px;
-  padding: 0 16px;
-  border-radius: 6px;
-  background: var(--ink);
-  color: var(--paper);
-  font-size: 12.5px;
-}
-
-.share-opt-btn {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 10px;
-  border-radius: 6px;
-  text-align: left;
-  width: 100%;
-}
-
-.share-opt-btn:hover {
-  background: var(--sunk);
-}
-
-.share-checkbox {
-  width: 15px;
-  height: 15px;
-  flex: none;
-  border-radius: 4px;
-  border: 1.5px solid var(--rule2);
-}
-
-.share-checkbox.is-on {
-  border-color: var(--accent);
-  background: var(--accent);
-}
-
-.share-opt-copy {
-  display: flex;
-  flex-direction: column;
-  gap: 1px;
-  flex: 1;
-}
-
-.share-opt-title {
-  font-size: 12.5px;
-}
-
-.share-opt-note {
-  font-size: 11.5px;
-  color: var(--faint);
-}
-
-.share-upsell {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px dashed var(--rule2);
-  border-radius: 8px;
-  margin-bottom: 14px;
-}
-
-.pro-pill {
-  font-size: 10px;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-  color: var(--accent);
-  border: 1px solid var(--accent);
-  border-radius: 20px;
-  padding: 2px 8px;
-  flex: none;
-}
-
-.share-upsell p {
-  font-size: 12px;
-  line-height: 1.5;
-  color: var(--muted);
-  flex: 1;
-  margin: 0;
 }
 
 .modal-done-btn {

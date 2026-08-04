@@ -1,8 +1,9 @@
 import { useState } from 'react'
 import { useI18n } from '../../i18n/I18nProvider'
+import { useModalA11y } from '../../components/useModalA11y'
 import { CONTACT_EMAIL } from '../../siteConfig'
 
-export type WaitlistPlan = 'pro' | 'classroom'
+export type WaitlistPlan = 'pro' | 'classroom' | 'share'
 
 /**
  * Stands in for real billing/lead capture until Supabase + Stripe exist:
@@ -15,28 +16,49 @@ export function WaitlistModal({ plan, onClose }: { plan: WaitlistPlan; onClose: 
   const s = t.studio
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
+  const dialogRef = useModalA11y(onClose)
 
-  const isPro = plan === 'pro'
-  const title = isPro ? s.waitlistTitlePro : s.waitlistTitleClassroom
-  const body = isPro ? s.waitlistBodyPro : s.waitlistBodyClassroom
-  const submitLabel = isPro ? s.waitlistSubmitPro : s.waitlistSubmitClassroom
+  const title =
+    plan === 'pro' ? s.waitlistTitlePro : plan === 'classroom' ? s.waitlistTitleClassroom : s.waitlistTitleShare
+  const body =
+    plan === 'pro' ? s.waitlistBodyPro : plan === 'classroom' ? s.waitlistBodyClassroom : s.waitlistBodyShare
+  const submitLabel =
+    plan === 'pro' ? s.waitlistSubmitPro : plan === 'classroom' ? s.waitlistSubmitClassroom : s.waitlistSubmitShare
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault()
-    const subject = isPro ? 'Margin Pro — waitlist' : 'Margin Classroom — interested'
-    const bodyText = isPro
-      ? `Please notify me when Pro launches.\n\nMy email: ${email}`
-      : `We're interested in Margin Classroom.\n\nContact email: ${email}\n\nClass size / timeline (optional):\n`
+    const subject =
+      plan === 'pro'
+        ? 'Margin Pro — waitlist'
+        : plan === 'classroom'
+          ? 'Margin Classroom — interested'
+          : 'Margin — notify me about sharing'
+    const bodyText =
+      plan === 'pro'
+        ? `Please notify me when Pro launches.\n\nMy email: ${email}`
+        : plan === 'classroom'
+          ? `We're interested in Margin Classroom.\n\nContact email: ${email}\n\nClass size / timeline (optional):\n`
+          : `Please notify me when sharing a playground is really live.\n\nMy email: ${email}`
     window.location.href = `mailto:${CONTACT_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(bodyText)}`
     setSent(true)
   }
 
   return (
     <div className="modal-scrim" onClick={onClose}>
-      <div className="modal modal-sm" onClick={(e) => e.stopPropagation()}>
+      <div
+        className="modal modal-sm"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="waitlist-modal-title"
+        tabIndex={-1}
+        onClick={(e) => e.stopPropagation()}
+      >
         {sent ? (
           <>
-            <div className="modal-title">{s.waitlistThanksTitle}</div>
+            <div className="modal-title" id="waitlist-modal-title">
+              {s.waitlistThanksTitle}
+            </div>
             <p className="modal-body">
               {s.waitlistThanksBody} <a href={`mailto:${CONTACT_EMAIL}`}>{CONTACT_EMAIL}</a>.
             </p>
@@ -46,7 +68,9 @@ export function WaitlistModal({ plan, onClose }: { plan: WaitlistPlan; onClose: 
           </>
         ) : (
           <form onSubmit={submit}>
-            <div className="modal-title">{title}</div>
+            <div className="modal-title" id="waitlist-modal-title">
+              {title}
+            </div>
             <p className="modal-body">{body}</p>
             <div className="aside-inline-row" style={{ marginBottom: 16 }}>
               <input

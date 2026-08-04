@@ -94,6 +94,7 @@ export function Editor({
           key={figure.url}
           index={i + 1}
           url={figure.url}
+          title={figure.title}
           onSave={() => onSaveFigure(figure.url)}
           onCopyCode={onCopyFigureCode}
         />

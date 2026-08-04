@@ -1,10 +1,15 @@
 import type { CSSProperties } from 'react'
 import { useI18n } from '../../i18n/I18nProvider'
+import { useModalA11y } from '../../components/useModalA11y'
 import { startsFor } from './content'
 
 export function WelcomeModal({ onPick }: { onPick: (index: number) => void }) {
   const { t, lang } = useI18n()
   const starts = startsFor(lang)
+  // No onEscape: this modal has no "cancel", only a choice — same as
+  // clicking the scrim, which also doesn't dismiss it. The trap and initial
+  // focus still make it fully usable from the keyboard.
+  const dialogRef = useModalA11y()
 
   const dotStyle = (i: number): CSSProperties => ({
     width: 9,
@@ -15,8 +20,17 @@ export function WelcomeModal({ onPick }: { onPick: (index: number) => void }) {
 
   return (
     <div className="modal-scrim">
-      <div className="modal">
-        <div className="modal-title">{t.studio.wTitle}</div>
+      <div
+        className="modal"
+        ref={dialogRef}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="welcome-modal-title"
+        tabIndex={-1}
+      >
+        <div className="modal-title" id="welcome-modal-title">
+          {t.studio.wTitle}
+        </div>
         <p className="modal-body">{t.studio.wBody}</p>
         <div className="start-list">
           {starts.map((s, i) => (

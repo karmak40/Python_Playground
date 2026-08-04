@@ -8,6 +8,7 @@ export function StudioHeader({
   activeFile,
   running,
   status,
+  slow,
   debugStatus,
   onShare,
   onRun,
@@ -20,6 +21,9 @@ export function StudioHeader({
   activeFile: string
   running: boolean
   status: string
+  /** A boot/package-load request has been pending unusually long — nudge the
+   * user toward Stop instead of leaving them staring at a frozen status line. */
+  slow: boolean
   debugStatus: DebugStatus
   onShare: () => void
   onRun: () => void
@@ -102,9 +106,9 @@ export function StudioHeader({
         <span className={running || debugStatus === 'starting' ? 'run-spinner' : 'run-triangle'} />
         <span>
           {running
-            ? status || t.studio.running
+            ? (slow && t.studio.stillWorking) || status || t.studio.running
             : debugging
-              ? (debugStatus === 'starting' && status) || t.studio.debugging
+              ? (debugStatus === 'starting' && ((slow && t.studio.stillWorking) || status)) || t.studio.debugging
               : t.studio.run}
         </span>
         <span style={{ fontFamily: 'var(--mono)', fontSize: 10.5, opacity: 0.6 }}>⌘↵</span>

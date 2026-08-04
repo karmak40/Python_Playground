@@ -461,6 +461,102 @@ a.btn:hover {
   margin-bottom: 20px;
 }
 
+/* ---- Error boundary ----
+   Deliberately not sharing selectors with the rest of the app's chrome —
+   this has to render correctly even if whatever crashed was mid-layout. */
+
+.crash-screen {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+}
+
+.crash-card {
+  width: 440px;
+  max-width: 100%;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: 12px;
+  box-shadow: var(--shadow);
+  padding: 30px 32px;
+}
+
+.crash-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--red);
+  margin-bottom: 14px;
+}
+
+.crash-card h1 {
+  font-family: var(--serif);
+  font-weight: 400;
+  font-size: 26px;
+  margin: 0 0 10px;
+}
+
+.crash-card p {
+  font-size: 13.5px;
+  line-height: 1.6;
+  color: var(--muted);
+  margin: 0 0 20px;
+}
+
+.crash-detail {
+  font-family: var(--mono);
+  font-size: 11.5px;
+  color: var(--red);
+  background: var(--sunk);
+  border-radius: 6px;
+  padding: 10px 12px;
+  margin: 0 0 20px;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+
+.crash-actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.crash-btn-primary {
+  height: 38px;
+  padding: 0 18px;
+  border-radius: 6px;
+  background: var(--accent);
+  color: var(--on-accent);
+  font-size: 13px;
+  font-weight: 500;
+  border: none;
+  cursor: pointer;
+}
+
+.crash-btn-ghost {
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 16px;
+  border-radius: 6px;
+  border: 1px solid var(--rule2);
+  color: var(--muted);
+  font-size: 13px;
+  text-decoration: none;
+}
+
+.crash-btn-ghost:hover {
+  color: var(--ink);
+  text-decoration: none;
+}
+
 @media (max-width: 720px) {
   .grid-3,
   .grid-2,
