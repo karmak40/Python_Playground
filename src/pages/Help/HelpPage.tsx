@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom'
 import { Header } from '../../components/Header'
 import { Footer } from '../../components/Footer'
 import { PricingLink } from '../../components/PricingLink'
@@ -97,14 +98,14 @@ export function HelpPage() {
         </div>
         <div className="article-list">
           {filtered.map((a) => (
-            <div className="article-row" key={`${a.id}-${a.title}`}>
+            <Link className="article-row" key={a.slug} to={`/help/${a.slug}`}>
               <span className="article-cat">{a.cat}</span>
               <span className="article-copy">
                 <span className="article-title">{a.title}</span>
                 <span className="article-desc">{a.desc}</span>
               </span>
               <span className="article-time">{a.time}</span>
-            </div>
+            </Link>
           ))}
         </div>
         {filtered.length === 0 && (

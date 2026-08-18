@@ -249,6 +249,7 @@ const en = {
 
   help: {
     crumb: 'Help centre',
+    backToHelp: '← Back to Help',
     h1: 'How can we help?',
     sub: 'Short answers, written by the people who built it. Most of these take under three minutes to read.',
     searchPh: 'Search: “read a CSV”, “breakpoint”, “invoice”…',
@@ -535,6 +536,7 @@ const de: Strings = {
 
   help: {
     crumb: 'Hilfe-Center',
+    backToHelp: '← Zurück zur Hilfe',
     h1: 'Wie können wir helfen?',
     sub: 'Kurze Antworten, geschrieben von den Leuten, die es gebaut haben. Die meisten liest du in unter drei Minuten.',
     searchPh: 'Suchen: „CSV lesen“, „Breakpoint“, „Rechnung“…',

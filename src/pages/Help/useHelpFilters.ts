@@ -9,6 +9,7 @@ export function useHelpFilters(lang: Lang) {
   const all = useMemo(
     () =>
       ARTICLES.map((a) => ({
+        slug: a.slug,
         id: a.cat,
         time: a.time,
         title: lang === 'de' ? a.titleDe : a.titleEn,

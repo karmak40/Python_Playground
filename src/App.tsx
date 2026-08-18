@@ -4,6 +4,7 @@ import { ThemeProvider } from './theme/ThemeProvider'
 import { StudioPage } from './pages/Studio/StudioPage'
 import { DebuggerPage } from './pages/Debugger/DebuggerPage'
 import { HelpPage } from './pages/Help/HelpPage'
+import { HelpArticlePage } from './pages/Help/HelpArticlePage'
 import { PrivacyPage } from './pages/Legal/PrivacyPage'
 import { TermsPage } from './pages/Legal/TermsPage'
 import { ContactPage } from './pages/Legal/ContactPage'
@@ -17,6 +18,7 @@ export default function App() {
             <Route path="/" element={<StudioPage />} />
             <Route path="/debugger" element={<DebuggerPage />} />
             <Route path="/help" element={<HelpPage />} />
+            <Route path="/help/:slug" element={<HelpArticlePage />} />
             <Route path="/privacy" element={<PrivacyPage />} />
             <Route path="/terms" element={<TermsPage />} />
             <Route path="/contact" element={<ContactPage />} />
